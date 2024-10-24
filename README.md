@@ -1,1 +1,1 @@
-# zajencia z psi 2024
+# zajęcia z psi 2024
