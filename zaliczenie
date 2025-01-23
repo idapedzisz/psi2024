@@ -1,0 +1,139 @@
+ZAD 1 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ojciec(jan, anna).
+ojciec(jan, piotr).
+ojciec(alan, kasia).
+ojciec(alan, kacper).
+ojciec(robert, jan).
+ojciec(robert, alan).
+matka(maria, anna).
+matka(maria, piotr).
+matka(zosia, kasia).
+matka(zosia, kacper).
+matka(agata, maria).
+matka(agata, zosia).
+malzenstwo(jan, maria).
+malzenstwo(alan, zosia).
+mazenstwo(robert, agata).
+mezczyzna(alan).
+mezczyzna(robert).
+mezczyzna(kacper).
+mezczyzna(jan).
+mezczyzna(piotr).
+kobieta(maria).
+kobieta(agata).
+kobieta(anna).
+kobieta(zosia).
+kobieta(kasia).
+
+rodzic(X, Y) :- ojciec(X, Y), !.
+rodzic(X, Y) :- matka(X, Y), !.
+
+brat(X, Y) :- rodzic(Z, X), rodzic(Z, Y), X \= Y, mezczyzna(X), !.
+siostra(X, Y) :- rodzic(Z, X), rodzic(Z, Y), X \=Y, kobieta(X), !.
+
+rodzenstwo(X, Y) :- rodzic(Z, X), rodzic(Z, Y), X \= Y, !.
+
+przodek(X, Y) :- rodzic(X, Y), rodzic(Z, Y), !.
+kuzyn(X, Y) :- ojciec(A, X), ojciec(B, Y), rodzenstwo(A, B).
+kuzyn(X, Y) :-  matka(A, X), matka(B, Y), rodzenstwo(A, B).
+
+kuzyn(X, Y) :- ojciec(A, X), ojciec(B, Y), brat(A, B).
+kuzyn(X, Y) :-  matka(A, X), matka(B, Y), siostra(A, B).
+
+% 2 metody otrzymania kuzyna - używając reguły rodzeństwa i reguł brat/siostra
+
+ZAD 2 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+:- dynamic lotnisko/1.
+:- dynamic polaczenie/3.
+
+lotnisko(warszawa).
+lotnisko(krakow).
+lotnisko(gdansk).
+
+polaczenie(warszawa, krakow, 300).
+polaczenie(krakow, gdansk, 200).
+polaczenie(warszawa, gdansk, 500).
+
+polaczenie(X, Y) :- polaczenie(X, Y, _), !.
+polaczenie(X, Y) :- polaczenie(Y, X, _), !.
+
+koszt_podrozy(X, Y, C) :- koszt_podrozy(X, Y, C, [X]), !. %rekurencja z listą [X] (odwiedzone lotniska)
+koszt_podrozy(X, Y, C, _) :- polaczenie(X, Y, C), !. %zwraca C jako koszt jeżeli istnieje bespośrednie połączenie  
+koszt_podrozy(X, Y, C, bylo) :- polaczenie(X, Z, C1), \+ member(Z, bylo), koszt_podrozy(Z, Y, C2, [Z|bylo]), C is C1 + C2, !.  %1. sprawdzenie, czy jest jakiekolwiek połączenie z X i Z z kosztem C1. 2. sprawdzenie, czy Z nie jest już lotnikiem, na którym byliśmy. 3. szuka kosztu z Z do Y rekurencją z listy odwiedzonych lotnisk, do której dodaje Z
+
+najkrotsza_droga(X, Y) :- setof(C, koszt_podrozy(X, Y, C), [Najkrotszy|_]), format('Najkrótsza droga pomiędzy ~w i ~w - koszt ~w.', [X, Y, Najkrotszy]), nl. % setof tworzy listę wg. wzrostu możliwych rozwiązań. Warunkiem jest koszt X i Y, a z listy wywoływane jest tylko potrzebne rozwiązanie (_) < reszta jest ignorowana
+
+ZAD 3 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+:- dynamic produkt/3.
+
+produkt(tv, 10, sektor_a).
+produkt(pralka, 5, sektor_b).
+produkt(lodowka, 3, sektor_c).
+
+dostepny_produkt(X) :- produkt(X, Ilosc, _), Ilosc > 0.
+
+przenies_produkt(X, Y) :- produkt(X, Ilosc, _), retract(produkt(X, Ilosc, _)), assert(produkt(X, Ilosc, Y)), format('Produkt ~w jest teraz w ~w - ~w', [X, Y, produkt(X, Ilosc, Y)]), nl. %retract usuwa produkt a assert dodaje nowy fakt, po sprawdzeniu, czy ten produkt istnieje
+
+uzupelnij_stan(X, N) :- retract(produkt(X, Ilosc, Sektor)), NowaIlosc is Ilosc + N, assert(produkt(X, NowaIlosc, Sektor)), format('Stan produktu ~w został uzupełniony. Nowy stan: produkt(~w, ~w, ~w)', [X, X, NowaIlosc, Sektor]), nl. % retract usuwa ilość a NowaIlosc aktualizuje informacje o niej (N). assert dodaje nowy fakt
+
+ZAD 4 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+:- dynamic miasto/1.
+:- dynamic droga/3.
+
+miasto(warszawa).
+miasto(krakow).
+miasto(poznan).
+miasto(radom).
+
+droga(warszawa, krakow, 4).
+droga(krakow, poznan, 3).
+droga(warszawa, poznan, 7).
+droga(radom, krakow, 8).
+
+bezposrednia_droga(X, Y) :- droga(X, Y, _), !.
+bezposrednia_droga(X, Y) :- droga(Y, X, _), !.
+
+czas_przejazdu(X, Y, T) :- czas_przejazdu(X, Y, T, [X]), !.
+czas_przejazdu(X, Y, T, _) :- droga(X, Y, T), !.
+czas_przejazdu(X, Y, T, _) :- droga(Y, X, T), !.
+
+czas_przejazdu(X, Y, T, Visited) :- droga(X, Z, T1), Z \= Y, \+ member(Z, Visited), czas_przejazdu(Z, Y, T2, [Z|Visited]), T is T1 + T2.
+czas_przejazdu(X, Y, T, Visited) :- droga(Z, X, T1), Z \= Y, \+ member(Z, Visited), czas_przejazdu(Z, Y, T2, [Z|Visited]), T is T1 + T2.
+
+najkrotsza_trasa(X, Y) :- setof((T, Trasa), najkrotsza_trasa(X, Y, T, Trasa), Wyniki), Wyniki = [(Najkrotszy, NajkrotszaTrasa)|_], format('Najkrótsza trasa między ~w a ~w: ~w (czas: ~w).', [X, Y, NajkrotszaTrasa, Najkrotszy]), nl. % szuka wszystkich możliwych tras, po czym wybiera tą z najkrótszym czasem, resztę ignoruje (_).
+
+najkrotsza_trasa(X, Y, T, [X|Trasa]) :- czas_przejazdu(X, Y, T, [X]), znajdz_trase(X, Y, [X], Trasa).
+
+znajdz_trase(X, Y, Visited, [Y]) :- droga(X, Y, _). 
+znajdz_trase(X, Y, Visited, [Y]) :- droga(Y, X, _). 
+znajdz_trase(X, Y, Visited, [Z|Trasa]) :- droga(X, Z, _), Z \= Y, \+ member(Z, Visited), znajdz_trase(Z, Y, [Z|Visited], Trasa).
+znajdz_trase(X, Y, Visited, [Z|Trasa]) :- droga(Z, X, _), Z \= Y, \+ member(Z, Visited), znajdz_trase(Z, Y, [Z|Visited], Trasa).
+
+ZAD 5 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+:- dynamic ksiazka/3.
+:- dynamic ocena/3.
+:- dynamic preferencje/2.
+
+ksiazka('W pustyni i w puszczy', sienkiewicz, przygodowa).
+ksiazka('Hobbit', tolkien, fantasy).
+ksiazka('Harry Potter', JK_Rowling, fantasy).
+ksiazka('Pan Tadeusz', mickiewicz, poezja).
+
+ocena(uzytkownik1, 'W pustyni i w puszczy', 5).
+ocena(uzytkownik1, 'Hobbit', 4).
+ocena(uzytkownik1, 'Harry Potter', 5).
+ocena(uzytkownik1, 'Pan Tadeusz', 3).
+ocena(uzytkownik2, 'W pustyni i w puszczy', 3).
+ocena(uzytkownik2, 'Hobbit', 2).
+ocena(uzytkownik2, 'Pan Tadeusz', 4).
+
+preferencje(uzytkownik1, fantasy).
+preferencje(uzytkownik2, poezja).
+
+polecane_ksiazki(Uzytkownik, Gatunek) :- preferencje(Uzytkownik, Gatunek), findall(Tytul, (ksiazka(Tytul, _, Gatunek), ocena(Uzytkownik, Tytul, Ocena), Ocena >= 4), ListaKsiazek), format('Polecane książki: ~w~n', [ListaKsiazek]). %sprawdza preferencje co do gatunku, następnie szuka takich książek. ocena musi być przynajmniej na 4
+
