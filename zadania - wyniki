@@ -1,0 +1,70 @@
+ZAD 1 
+
+?-przodek(jan, anna)
+
+true
+
+?-brat(piotr, anna)
+
+true
+
+?-kuzyn(X, piotr)
+
+X = kasia
+
+po wciśnięciu NEXT
+
+X = kacper
+
+ZAD 2
+
+?-polaczenie(warszawa, krakow).
+
+true
+
+?- koszt_podrozy(warszawa, gdansk, C).
+
+C = 500
+
+?- najkrotsza_droga(warszawa, gdansk).
+
+Najkrótsza droga pomiędzy warszawa i gdansk - koszt 500.
+true
+
+ZAD 3
+
+?- dostepny_produkt(tv).
+
+true
+
+?- przenies_produkt(tv, sektor_b).
+
+Produkt tv jest teraz w sektor_b - produkt(tv,10,sektor_b)
+true
+
+?- uzupelnij_stan(pralka, 3).
+
+Stan produktu pralka został uzupełniony. Nowy stan: produkt(pralka, 8, sektor_b)
+true
+
+ZAD 4
+
+?-bezposrednia_droga(warszawa, krakow)
+
+true
+
+?- czas_przejazdu(warszawa, poznan, T).
+
+T = 7
+
+?- najkrotsza_trasa(warszawa, poznan).
+
+Najkrótsza trasa między warszawa a poznan: [warszawa,krakow,poznan] (czas: 7).
+true
+
+ZAD 5
+
+?- polecane_ksiazki(uzytkownik1, fantasy).
+
+Polecane książki: [Hobbit,Harry Potter]
+true
